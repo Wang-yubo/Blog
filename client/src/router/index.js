@@ -10,7 +10,7 @@ const routes = [{
             import ('../views/Home')
     },
     {
-        path: '/blog',
+        path: '/blog/:id',
         name: 'Blog',
         component: () =>
             import ('../views/Blog')

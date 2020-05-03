@@ -1,5 +1,6 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 let Schema = mongoose.Schema;
+
 
 let article = mongoose.model("article", new Schema({
     type: { type: String, required: true },
@@ -7,13 +8,13 @@ let article = mongoose.model("article", new Schema({
     content: { type: String, required: true },
     tag: { type: String, required: true },
     date: { type: Date, default: Date.now },
-    surface: { type: String, default: "/server/public/img/defaultSurface.jpg" },
+    surface: { type: String, default: 'http://localhost:3000/img/defaultSurface.jpg' },
     pv: { type: Number, default: 0 },
     comment: [{
         type: Schema.Types.ObjectId,
         ref: "comment"
     }]
-}))
+}));
 
 
 //* 假数据测试一波

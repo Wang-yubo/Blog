@@ -2,11 +2,13 @@
   <div id="Container">
     <el-container>
       <!-- 主体部分 -->
-      <el-main></el-main>
+      <el-main>
+        <ArticleShow></ArticleShow>
+      </el-main>
       <!-- 侧边栏部分 -->
       <el-aside>
         <!-- 搜索框 -->
-        <div class="search">
+        <div :class="['search',{'fixed':ifSerchFixed}]">
           <div class="search-main">
             <input type="text" v-model="searchInput" placeholder="大爷,搜索在这" />
             <i class="el-icon-search"></i>
@@ -14,13 +16,13 @@
           <div class="search-article">
             <ul @mouseleave="handleMouseleave">
               <li
-                @mouseenter="handleMouseenter"
+                @mouseenter="handleMouseenter(index)"
                 v-for="(item,index) in getArticleTags"
                 :key="index"
-              >{{item}}</li>
+              ><router-link :to="/blog/+index"> {{item}} </router-link></li>
             </ul>
             <!-- 动态改变cover的top值 -->
-            <div class="cover" :style="{top:coverTop+'px'}"></div>
+            <div class="cover" :style="{top:coverIndex*40+'px'}"></div>
           </div>
         </div>
         <!-- 热门文章 -->
@@ -58,25 +60,32 @@
 </template>
 
 <script>
+import ArticleShow from "./ArticleShow";
 // 这里解构会和webpack冲突
 import request from "../api/index";
 let getArticleInfo = request.getArticleInfo;
 let getArticleHot  = request.getArticleHot
 export default {
   name: "Container",
+  components:{
+    ArticleShow,
+  },
   data() {
     return {
       //* 搜索框存储数据
 			searchInput: "",
 			
+      //* 控制search的class名字
+      ifSerchFixed:false,
+
       //* 存放文章标签
 			articleTags: [],
 
 			//* 存放热门文章列表
-			articleHot:[],
-
+      articleHot:[],
+      
       //* cover的位置
-			coverTop: 0,
+		coverIndex:this.$route.params.id*1,
 			
 			//* 模拟最近访客的数据
 			visitor:[
@@ -96,13 +105,18 @@ export default {
     };
   },
   methods: {
-    //* 鼠标移入获取事件源距离定位父级的top值,并且设置给coverTop,
-    handleMouseenter(e) {
-      this.coverTop = e.target.offsetTop;
+    //* 鼠标移入获取事件源距离定位父级的top值,并且设置给coverIndex,
+    handleMouseenter(index) {
+      this.coverIndex = index;
     },
-    //* 鼠标离开,cover恢复到全部文章
+    //* 鼠标离开,cover恢复到当前的id
     handleMouseleave() {
-      this.coverTop = 0;
+      this.$route.params.id*1
+    },
+    //* 监听滚轮事件的处理函数
+    handleWindowScroll(){
+      //* 通过滚动高度来控制ifSerchFixed
+      this.ifSerchFixed = document.documentElement.scrollTop>=900
     }
   },
   computed: {
@@ -112,7 +126,7 @@ export default {
 		},
 		getArticleRecommend(){
 			return  this.articleHot[0]|| {}
-		}
+    },
 	
   },
   // 创建组件的时候请求数据
@@ -126,7 +140,16 @@ export default {
 				
 			}
 		)
-  }
+  },
+  mounted() {
+    //* 监听window的滚动事件,这已经是vue操作DOM的极限了
+    window.addEventListener("scroll",this.handleWindowScroll)
+  },
+    //* 离开时清除监听事件
+  destroyed() {
+    window.removeEventListener("scroll",this.handleWindowScroll)
+    
+  },
 };
 </script>
 
