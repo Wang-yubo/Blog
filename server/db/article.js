@@ -23,7 +23,7 @@ let article = mongoose.model("article", new Schema({
 //         type: ["原创", "转载"][(Math.random() * 5 | 0)],
 //         title: `第${i+1}篇文章`,
 //         content: (`我是第${i+1}篇文章的内容,哈哈哈哈哈`).repeat(10),
-//         tag: ["HTML&Css", "JavaScript", "Vue", "react+node", "other"][(Math.random() * 5 | 0)]
+//         tag: ["HTML&Css", "JavaScript", "Node", "Vue+React", "Other"][(Math.random() * 5 | 0)]
 //     })
 // }
 

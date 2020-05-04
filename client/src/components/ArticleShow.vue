@@ -1,82 +1,146 @@
 <template>
-<!-- 文章展示 -->
+  <!-- 文章展示 -->
   <div class="articleShow">
     <!-- 文章列表模板 -->
     <section v-for="(item,index) in articleList" :key="index">
       <!-- 文章标题 -->
-       <h5>
-            <span>【{{item.type}}】</span>
-            <a href="">{{item.title}}</a>
-        </h5>
-        <!-- 文章日期 -->
-        <div class="time">
-            <p class="date">{{item.date | date}}</p>
-            <p class="month">{{item.date | month}}<span>月</span></p>
-            <p class="year">{{item.date | year}}</p>
-        </div>
-        <!-- 文章内容 -->
-       <div class="content">
-         <router-link :to="'/Article/'+item._id" :style="{backgroundImage:'url('+item.surface+')'}">
+      <h5>
+        <span>【{{item.type}}】</span>
+        <router-link :to="'/Article/'+item._id">{{item.title}}</router-link>
+      </h5>
+      <!-- 文章日期 -->
+      <div class="time">
+        <p class="date">{{item.date | date}}</p>
+        <p class="month">
+          {{item.date | month}}<span>月</span>
+        </p>
+        <p class="year">{{item.date | year}}</p>
+      </div>
+      <!-- 文章内容 -->
+      <div class="content">
+        <router-link :to="'/Article/'+item._id" :style="{backgroundImage:'url('+item.surface+')'}">
           <i></i>
         </router-link>
         {{item.content}}
       </div>
+      <!-- 继续阅读 -->
+      <div class="read-more">
+        <a href>继续阅读</a>
+      </div>
+      <!-- footer 显示tag和pv等等 -->
+      <div class="footer">
+        <!-- tag和图标 -->
+        <div class="fl">
+          <i class="el-icon-s-promotion"></i>
+          <span>{{item.tag}}</span>
+        </div>
+        <!-- 右侧pv和comment -->
+        <div class="fr">
+          <span class="pv">
+            <i class="el-icon-view"></i>
+            <i>{{item.pv}}</i>
+          </span>
+          <span class="comment">
+            <i class="el-icon-chat-dot-round"></i>
+            <i>{{item.comment.length}}</i>
+          </span>
+        </div>
+      </div>
     </section>
+     <div v-if="ifLoding" class="loading">
+      <span>加载中</span>
+      <svg viewBox="25 25 50 50" class="circular"><circle cx="50" cy="50" r="20" fill="none" class="path"></circle></svg>
+    </div>
+    <p v-if="ifNoMore" class="no-more">哼╭(╯^╰)╮我也是有底线的！！</p>
+    
   </div>
 </template>
 
 <script>
-import request from '../api'
+import request from "../api";
 const getArticleShow = request.getArticleShow;
 
 export default {
-    name:"ArticleShow",
-    data() {
-        return {
-            //* 存储文章列表
-            articleList:[],
-            // dateReg:/^(\d{4})-(\d{1,2})-(\d{1,2})/,
-        }
+  name: "ArticleShow",
+  data() {
+    return {
+      //* 存储文章列表
+      articleList: [],
+     
+      //* no-more的显示与否
+        ifNoMore : false,
+
+      //* 是否在加载
+        ifLoding : false
+    };
+  },
+  //* 过滤 处理日期 字符串形式
+  filters: {
+    date(value) {
+      return value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)[3];
     },
-    //* 过滤 处理日期 字符串形式
-    filters:{
-      date(value){
-        return value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)[3];
-      },
-       month(value){
-        return value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)[2];
-      },
-       year(value){
-        return value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)[1];
-      },
-      
+    month(value) {
+      return value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)[2];
     },
-    computed: {
-        id(){
-            return this.$route.params.id
-        }
+    year(value) {
+      return value.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)[1];
+    }
+  },
+  computed: {
+    id() {
+      return this.$route.params.id;
+    }
+  },
+  watch: {
+    id() {
+    this.getArticleShowFresh();
+    }
+  },
+  methods:{
+    getArticleShowFresh(){
+      this.ifNoMore = this.ifLoding = false;
+       getArticleShow(this.id, true).then(res => {
+        this.articleList = res.data.data;
+      });
     },
-    watch:{
-        id(){
-        getArticleShow(this.id, true)
-         .then(res=>{
-            this.articleList=res.data.data
-            }) 
+    handleScroll(){
+      //* 不显示则直接return,需要显示才加载,可以实现节流
+      if(this.ifNoMore || this.ifLoding) return;
+      // 文档高  (文档高=滚动高+可视高)
+      let c = document.documentElement.offsetHeight;
+      // 滚动高
+      let a = document.documentElement.scrollTop;
+      // 可视高
+      let b = document.documentElement.clientHeight;
+
+      if(a+b>c-200){
+      this.ifLoding = true;
+        getArticleShow(this.id,false).then(res=>{
+          this.ifLoding = false;
+          let data = res.data.data;
+          if(data.length){
+            this.articleList.push(...res.data.data);
+          }else{
+            this.ifNoMore=true
           }
-    },
-    mounted() {
-        //* 发送第一次请求
-        getArticleShow(this.id,true)
-        .then(res=>{
-            this.articleList = res.data.data
-            // console.log(res.data.data);          
-            }) 
-    },
-}
+        })
+      }
+    }
+  },
+  mounted() {
+    //* 发送第一次请求
+    getArticleShow(this.id, true).then(res => {
+      this.articleList = res.data.data;
+      // console.log(res.data.data);
+    });
+    //* 监听滚动事件,通过滚动加载文章
+    window.addEventListener('scroll',this.handleScroll)
+  }
+};
 </script>
 
 <style lang="less" scoped>
-.articleShow{
+ .articleShow{
     >section{
       overflow: hidden;
       position: relative;

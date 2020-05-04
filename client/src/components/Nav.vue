@@ -12,7 +12,7 @@
             <router-link to="/">首页</router-link>
           </li>
           <li>
-            <router-link to="/blog">博客</router-link>
+            <router-link to="/blog/0">博客</router-link>
           </li>
           <li>
             <router-link to="/message">留言</router-link>

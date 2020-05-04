@@ -6,7 +6,7 @@ let articleInfo = mongoose.model("articleInfo", new Schema({
 }))
 
 // articleInfo.create({
-//     tags: ["HTML&Css", "JavaScript", "Vue", "react+node", "other"],
+//     tags: ["HTML&Css", "JavaScript", "Node", "Vue+React", "Other"],
 //     num: 100
 // })
 module.exports = articleInfo

@@ -14,7 +14,7 @@ export default {
 
   #app{
     width:100%;
-    height: 3000px;
+    // height: 3000px;
     background: url("./assets/img/bg.jpg") center top/cover fixed;
   }
 
