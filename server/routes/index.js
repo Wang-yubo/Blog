@@ -4,12 +4,10 @@ var router = express.Router();
 var article = require("../db/article")
 var articleInfo = require("../db/articleInfo");
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-    res.send("测试数据")
-});
-
 //* 文章相关接口
 router.use("/article", require("./article/index"))
+
+//* 注册相关接口
+router.use("/register", require("./register/index"))
 
 module.exports = router;

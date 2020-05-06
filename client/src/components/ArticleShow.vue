@@ -94,6 +94,7 @@ export default {
   watch: {
     id() {
     this.getArticleShowFresh();
+    
     }
   },
   methods:{

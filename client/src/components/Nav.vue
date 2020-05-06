@@ -4,7 +4,7 @@
       <div class="n-m-logo">Mr.wyb</div>
       <div class="n-m-login">
         <el-button type="primary" size="mini">登录</el-button>
-        <el-button type="success" size="mini">注册</el-button>
+        <el-button @click="handleRegister" type="success" size="mini">注册</el-button>
       </div>
       <div class="n-m-nav">
         <ul :class="'list'+ whichActive">
@@ -33,13 +33,19 @@
 </template>
 
 <script>
+import Register from './Register.vue'
 export default {
   name: "Nav",
-  components: {},
+  components: {
+    // eslint-disable-next-line vue/no-unused-components
+    Register,
+  },
   data() {
     return {
       /*路由列表*/
-      routerList: ["Home", "Blog", "Message", "Diary", "Links", "About"]
+      routerList: ["Home", "Blog", "Message", "Diary", "Links", "About"],
+      /*弹窗key值*/ 
+      alertKey:[],
     };
   },
   computed: {
@@ -47,7 +53,19 @@ export default {
       let index = this.routerList.indexOf(this.$route.name);
       return index + 1;
     }
-  }
+  },
+  methods: {
+    handleRegister(){
+        const h = this.$createElement;
+        this.$msgbox({
+          title: '注册',
+          message: h(Register,{key:this.alertKey++}),
+          showCancelButton: false,
+          showConfirmButton:false,
+          closeOnClickModal:false,
+        }).then(()=>{}).catch(()=>{})
+    }
+  },
 };
 </script>
 
