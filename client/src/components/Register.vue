@@ -1,47 +1,55 @@
 <template>
   <div>
-      <!-- 用户名 -->
+    <!-- 整个表单 -->
     <el-form ref="form" :model="form" label-width="80px" :rules="rules">
+      <!-- 用户名 -->
       <el-form-item label="用户名" prop="user">
         <el-input type="string" v-model="form.user" placeholder="请输入用户名"></el-input>
       </el-form-item>
 
-    <!-- 密码 -->
+      <!-- 密码 -->
       <el-form-item label="密码" prop="pwd">
         <el-input type="password" v-model="form.pwd" placeholder="请输入密码" show-password></el-input>
       </el-form-item>
 
-<!-- 确认密码 -->
+      <!-- 确认密码 -->
       <el-form-item label="确认密码" prop="checkPwd">
         <el-input type="password" v-model="form.checkPwd" placeholder="请确认密码" show-password></el-input>
       </el-form-item>
 
       <!-- 验证码 -->
-     <el-form-item label="验证码" class="vcode">
-        <el-input v-model="form.vcode" placeholder=""></el-input>
-        <div class="svg">svg</div>
-        <el-link href="javascript:void(0)">刷新</el-link>
+      <el-form-item  label="验证码" class="vcode">
+        <el-input  v-model="form.vcode" placeholder></el-input>
+        <div class="svg" v-html="svgCode"></div>
+        <el-link @click="getVCode" type="primary" :disabled="refreshDisabled">刷新</el-link>
       </el-form-item>
-      
+
       <!-- 提交 -->
       <el-form-item>
         <el-button type="success">注册</el-button>
         <el-button>取消</el-button>
       </el-form-item>
+
     </el-form>
   </div>
 </template>
 
 <script>
+import request from '../api/index';
+
+const  getRegisterVCode =request.getRegisterVCode;
+
 export default {
   name: "Register",
   data() {
     return {
+      //* 表单数据
       form: {
         user: "",
         pwd: "",
         checkPwd: ""
       },
+      //* 表单验证
       rules: {
         // 用户验证
         user: [
@@ -95,9 +103,34 @@ export default {
           required: true,
           trigger: ["blur", "change"]
         }
-      }
+      },
+      //* 验证码 svg
+      svgCode:"",
+      //* 刷新状态
+      refreshDisabled:false,
+      // 
+      refreshTimer:null,
     };
-  }
+  },
+  methods: {
+    getVCode(){
+      getRegisterVCode().then(res=>{
+      if(res.data.code === 0){
+        this.refreshDisabled = true
+        this.refreshTimer = setTimeout(()=>{
+          this.refreshDisabled = false
+        },res.data.time)
+        this.svgCode=res.data.data
+      }
+    }).catch(err=>{
+      console.log(err);     
+    })
+    }
+  },
+  mounted() {
+    // 组件挂载的时候加载验证码
+     this.getVCode()
+  },
 };
 </script>
 

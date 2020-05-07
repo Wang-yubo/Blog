@@ -6,12 +6,15 @@ axios.defaults.withCredentials = true; //跨域允许携带cookie,否则无法�
 axios.defaults.headers.post["Content-Type"] = "application/x-www-form-urlencoded"; //设置POST请求格式
 
 export default {
+    //* 获取文章信息
     getArticleInfo() {
         return axios.post("/article/getInfo")
     },
+    //* 获取热门文章
     getArticleHot() {
         return axios.post("/article/getHot")
     },
+    //* 获取文章列表
     getArticleShow: (function() { //写成闭包好拿到这个两个参数
         let skip = 0;
         let limit = 5;
@@ -25,5 +28,10 @@ export default {
             skip += limit;
             return axios.post("/article/getShow", data)
         }
-    })()
+    })(),
+    //* 获取验证码图片
+    getRegisterVCode() {
+        return axios.post("/register/vcode");
+    }
+
 };

@@ -4,6 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require("mongoose")
+var session = require("express-session")
+var connectMongo = require("connect-mongo")(session)
 
 //* 连接数据库
 mongoose.connect("mongodb+srv://wyb:wyb123..@blog-vm1hs.mongodb.net/test?retryWrites=true&w=majority", {
@@ -32,6 +34,10 @@ app.use((req, res, next) => {
     }
 });
 
+//* 设置session
+app.use(require("./middleware/session"));
+
+//* 设置路由
 var indexRouter = require('./routes/index');
 // var usersRouter = require('./routes/users');
 
