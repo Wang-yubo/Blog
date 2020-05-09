@@ -18,10 +18,10 @@
       </el-form-item>
 
       <!-- 验证码 -->
-      <el-form-item  label="验证码" class="vcode">
-        <el-input  v-model="form.vcode" placeholder></el-input>
-        <div class="svg" v-html="svgCode"></div>
-        <el-link @click="getVCode" type="primary" :disabled="refreshDisabled">刷新</el-link>
+      <el-form-item label="验证码" prop="svgCode" class="vcode" >
+        <el-input v-model="form.svgCode"></el-input>
+        <div class="svg" v-html="register.svgText"></div>
+        <el-link type="primary" @click="getVCode" :disabled="register.disabled">{{register.refreshText}}</el-link>
       </el-form-item>
 
       <!-- 提交 -->
@@ -38,17 +38,18 @@
 import request from '../api/index';
 
 const  getRegisterVCode =request.getRegisterVCode;
-
+ const getRegisterCheckVcode =  request.getRegisterCheckVcode
 export default {
   name: "Register",
   data() {
     return {
       //* 表单数据
-      form: {
-        user: "",
-        pwd: "",
-        checkPwd: ""
-      },
+     form :{
+          user : "",
+          pwd : "",
+          checkPwd : "",
+          svgCode : ""
+        },
       //* 表单验证
       rules: {
         // 用户验证
@@ -102,36 +103,130 @@ export default {
           },
           required: true,
           trigger: ["blur", "change"]
-        }
+        },
+         //验证码
+             svgCode : {
+            validator : (rule,value,cb)=>{
+              if (!value){
+                cb(new Error("请输入验证码！"));
+              }else{
+                getRegisterCheckVcode(value)
+                .then(res=>{
+                  if (res.data.code === 0){
+                    cb();
+                  }else{
+                    cb(new Error("验证码错误"));
+                  }
+                })
+                // eslint-disable-next-line no-unused-vars
+                .catch(e=>{
+                  cb(new Error("未知错误…"));
+                });
+              }
+            },
+            required: true,
+            trigger: 'blur'
+          }
       },
-      //* 验证码 svg
-      svgCode:"",
-      //* 刷新状态
-      refreshDisabled:false,
-      // 
-      refreshTimer:null,
+    //* 注册相关的数据
+        register : {
+          svgText : "loading...",
+          refreshText : "刷新",
+          disabled : true,
+          timer : null,
+          submitDisabled : false
+        }
     };
   },
   methods: {
-    getVCode(){
-      getRegisterVCode().then(res=>{
-      if(res.data.code === 0){
-        this.refreshDisabled = true
-        this.refreshTimer = setTimeout(()=>{
-          this.refreshDisabled = false
-        },res.data.time)
-        this.svgCode=res.data.data
-      }
-    }).catch(err=>{
-      console.log(err);     
-    })
-    }
-  },
-  mounted() {
+     getVCode(){
+        getRegisterVCode().then(res=>{
+          clearTimeout(this.register.timer);
+          let t = 0;
+          let fn = ()=>{
+            t+=1000;
+            if (t > res.data.time){
+              clearTimeout(this.register.timer);
+              this.register.disabled = false;
+              this.register.refreshText = "刷新";
+            }else{
+              this.register.disabled = true;
+              this.register.refreshText = (((res.data.time - t)/1000)|0) + "s后可以刷新";
+            }
+          };
+          this.register.timer = setInterval(fn,1000);
+          fn();
+
+          //更新图片
+          this.register.svgText = res.data.data;
+        });
+      },
+      /*注册的点击*/
+      // handleClick(){
+      //   this.register.submitDisabled = true;
+      //   this.$refs["form"].validate((valid) => {
+      //     if (valid) {
+      //       //验证都通过
+      //       postRegister(this.form).then(res=>{
+      //         this.getVCode();
+      //         if (res.data.code){
+      //           this.$message({
+      //             message: res.data.msg,
+      //             type: 'error',
+      //             duration : 2000
+      //           });
+      //           this.register.submitDisabled = false;
+      //         }else{
+      //           //注册成功
+      //           this.$message({
+      //             message: '注册成功！',
+      //             type: 'success',
+      //             duration : 2000
+      //           });
+      //           setTimeout(()=>{
+      //             this.register.submitDisabled = false;
+      //             this.$emit("handleClose",true);
+      //           },1800);
+      //         }
+      //       }).catch(e=>{
+      //         this.register.submitDisabled = false;
+      //         this.getVCode();
+      //         this.$message({
+      //           message: "注册失败请稍后再试~",
+      //           type: 'error',
+      //           duration : 2000
+      //         });
+      //       });
+      //     } else {
+      //       this.register.submitDisabled = false;
+      //       //验证没通过
+      //       return false;
+      //     }
+      //   });
+      // },
+ 
+      /*关闭的回调*/
+      // beforeClose(done){
+      //   this.$confirm('确认关闭？')
+      //     .then(()=> {
+      //       this.$emit("handleClose",false);
+      //     })
+      //     .catch(()=> {});
+      // }
+ 
+ 
+ 
+ 
+ },
+ mounted() {
     // 组件挂载的时候加载验证码
      this.getVCode()
   },
-};
+    destroyed() {
+      clearTimeout(this.register.timer);
+    }
+}
+
 </script>
 
 <style lang="less" scoped>

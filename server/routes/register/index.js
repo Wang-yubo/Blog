@@ -13,11 +13,11 @@ router.post("/vcode", (req, res) => {
     if (req.session.registerVCodeTime) {
         let t_ = new Date - new Date(req.session.registerVCodeTime)
             //* 判断现在的时间与上一次创建的时间是否间隔1分钟
-        if (t_ < 60000) {
+        if (t_ <= 6000) {
             res.send({
                 code: 2,
                 meg: "请求过于频繁",
-                time: 60000 - t_ //转换格式
+                time: 6000 - t_ //转换格式
             })
             return;
         }
@@ -27,14 +27,31 @@ router.post("/vcode", (req, res) => {
     //* 创建验证码
     let captcha = svgCaptcha.create();
     //* 将正确的答案保存在session中
-    req.session.registerVCode = captcha.text;
+    req.session.registerVCode = captcha;
     //* 创建第一次得到验证码的时间
     req.session.registerVCodeTime = new Date();
     //* 将svg发送给前端
     res.send({
         code: 0,
         data: captcha.data,
-        time: 600000
+        time: 6000
     })
 })
+
+//验证码失去焦点的请求
+router.post("/checkVcode", (req, res) => {
+    let { svgCode } = req.body;
+
+    if (!svgCode || (svgCode.toLocaleLowerCase() !== req.session.registerVCode.text.toLocaleLowerCase())) {
+        res.send({
+            code: 1,
+            msg: "验证失败"
+        });
+    } else {
+        res.send({
+            code: 0,
+            msg: "验证成功"
+        });
+    }
+});
 module.exports = router;

@@ -32,6 +32,10 @@ export default {
     //* 获取验证码图片
     getRegisterVCode() {
         return axios.post("/register/vcode");
-    }
+    },
+    //* 验证码的提交
+    getRegisterCheckVcode(svgCode) {
+        return axios.post('/register/checkVcode', { svgCode })
+    },
 
 };
