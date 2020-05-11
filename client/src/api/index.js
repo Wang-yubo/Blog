@@ -11,8 +11,8 @@ export default {
         return axios.post("/article/getInfo")
     },
     //* 获取热门文章
-    getArticleHot() {
-        return axios.post("/article/getHot")
+    getArticleHot(limit = 8) {
+        return axios.post("/article/getHot", { limit })
     },
     //* 获取文章列表
     getArticleShow: (function() { //写成闭包好拿到这个两个参数
@@ -36,6 +36,14 @@ export default {
     //* 验证码的提交
     getRegisterCheckVcode(svgCode) {
         return axios.post('/register/checkVcode', { svgCode })
+    },
+    /*
+     * 注册接口
+     * @parmas
+     *   options ：Object，必须，需要 user、pwd、svgCode 三条属性
+     */
+    postRegister(options) {
+        return axios.post("/register", options);
     },
 
 };

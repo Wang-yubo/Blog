@@ -26,8 +26,7 @@
 
       <!-- 提交 -->
       <el-form-item>
-        <el-button type="success">注册</el-button>
-        <el-button>取消</el-button>
+        <el-button type="primary" @click="handleClick" :disabled="register.submitDisabled">立即注册</el-button>
       </el-form-item>
 
     </el-form>
@@ -38,7 +37,8 @@
 import request from '../api/index';
 
 const  getRegisterVCode =request.getRegisterVCode;
- const getRegisterCheckVcode =  request.getRegisterCheckVcode
+const getRegisterCheckVcode =  request.getRegisterCheckVcode
+const postRegister =  request.postRegister
 export default {
   name: "Register",
   data() {
@@ -105,7 +105,7 @@ export default {
           trigger: ["blur", "change"]
         },
          //验证码
-             svgCode : {
+        svgCode : {
             validator : (rule,value,cb)=>{
               if (!value){
                 cb(new Error("请输入验证码！"));
@@ -118,8 +118,7 @@ export default {
                     cb(new Error("验证码错误"));
                   }
                 })
-                // eslint-disable-next-line no-unused-vars
-                .catch(e=>{
+                .catch(()=>{
                   cb(new Error("未知错误…"));
                 });
               }
@@ -162,48 +161,49 @@ export default {
         });
       },
       /*注册的点击*/
-      // handleClick(){
-      //   this.register.submitDisabled = true;
-      //   this.$refs["form"].validate((valid) => {
-      //     if (valid) {
-      //       //验证都通过
-      //       postRegister(this.form).then(res=>{
-      //         this.getVCode();
-      //         if (res.data.code){
-      //           this.$message({
-      //             message: res.data.msg,
-      //             type: 'error',
-      //             duration : 2000
-      //           });
-      //           this.register.submitDisabled = false;
-      //         }else{
-      //           //注册成功
-      //           this.$message({
-      //             message: '注册成功！',
-      //             type: 'success',
-      //             duration : 2000
-      //           });
-      //           setTimeout(()=>{
-      //             this.register.submitDisabled = false;
-      //             this.$emit("handleClose",true);
-      //           },1800);
-      //         }
-      //       }).catch(e=>{
-      //         this.register.submitDisabled = false;
-      //         this.getVCode();
-      //         this.$message({
-      //           message: "注册失败请稍后再试~",
-      //           type: 'error',
-      //           duration : 2000
-      //         });
-      //       });
-      //     } else {
-      //       this.register.submitDisabled = false;
-      //       //验证没通过
-      //       return false;
-      //     }
-      //   });
-      // },
+      handleClick(){
+        this.register.submitDisabled = true;
+        this.$refs["form"].validate((valid) => {
+          if (valid) {
+            //验证都通过
+            postRegister(this.form).then(res=>{
+              this.getVCode();
+              if (res.data.code){
+                this.$message({
+                  message: res.data.msg,
+                  type: 'error',
+                  duration : 2000
+                });
+                this.register.submitDisabled = false;
+              }else{
+                //注册成功
+                this.$message({
+                  message: '注册成功！',
+                  type: 'success',
+                  duration : 2000
+                });
+                setTimeout(()=>{
+                  this.register.submitDisabled = false;
+                  this.$emit("handleClose",true);
+                },1800);
+              }
+            // eslint-disable-next-line no-unused-vars
+            }).catch(e=>{
+              this.register.submitDisabled = false;
+              this.getVCode();
+              this.$message({
+                message: "注册失败请稍后再试~",
+                type: 'error',
+                duration : 2000
+              });
+            });
+          } else {
+            this.register.submitDisabled = false;
+            //验证没通过
+            return false;
+          }
+        });
+      },
  
       /*关闭的回调*/
       // beforeClose(done){

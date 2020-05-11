@@ -22,7 +22,8 @@ router.post("/getInfo", (req, res) => {
 });
 //* 获取热门文章8篇
 router.post("/getHot", (req, res) => {
-    article.find({}, { __v: 0 }, { sort: { pv: -1 }, skip: 0, limit: 8 })
+    let { limit } = req.body;
+    article.find({}, { __v: 0 }, { sort: { pv: -1 }, skip: 0, limit })
         .then((data) => {
             res.send({
                 code: 0,
