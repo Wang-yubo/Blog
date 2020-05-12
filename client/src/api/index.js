@@ -46,4 +46,17 @@ export default {
         return axios.post("/register", options);
     },
 
+
+
+    /*登录的接口*/
+    postLogin(options) {
+        return axios.post('/login', options);
+    },
+    postIfLogin() {
+        return axios.post("/login/ifLogin");
+    },
+    postLogout() {
+        return axios.post("/login/logout");
+    },
+
 };

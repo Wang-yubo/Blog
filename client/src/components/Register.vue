@@ -1,70 +1,68 @@
 <template>
-  <div>
-    <!-- 整个表单 -->
+  <el-dialog title="注册" :visible.sync="dialogVisible" width="30%" :before-close="beforeClose">
     <el-form ref="form" :model="form" label-width="80px" :rules="rules">
-      <!-- 用户名 -->
       <el-form-item label="用户名" prop="user">
-        <el-input type="string" v-model="form.user" placeholder="请输入用户名"></el-input>
+        <el-input v-model="form.user"></el-input>
       </el-form-item>
-
-      <!-- 密码 -->
       <el-form-item label="密码" prop="pwd">
-        <el-input type="password" v-model="form.pwd" placeholder="请输入密码" show-password></el-input>
+        <el-input v-model="form.pwd" show-password></el-input>
       </el-form-item>
-
-      <!-- 确认密码 -->
       <el-form-item label="确认密码" prop="checkPwd">
-        <el-input type="password" v-model="form.checkPwd" placeholder="请确认密码" show-password></el-input>
+        <el-input v-model="form.checkPwd" type="password"></el-input>
       </el-form-item>
-
-      <!-- 验证码 -->
-      <el-form-item label="验证码" prop="svgCode" class="vcode" >
+      <el-form-item label="验证码" prop="svgCode" class="vcode">
         <el-input v-model="form.svgCode"></el-input>
         <div class="svg" v-html="register.svgText"></div>
-        <el-link type="primary" @click="getVCode" :disabled="register.disabled">{{register.refreshText}}</el-link>
+        <el-link
+          type="primary"
+          @click="getVCode"
+          :disabled="register.disabled"
+        >{{register.refreshText}}</el-link>
       </el-form-item>
-
-      <!-- 提交 -->
-      <el-form-item>
-        <el-button type="primary" @click="handleClick" :disabled="register.submitDisabled">立即注册</el-button>
-      </el-form-item>
-
+      <!--<el-form-item>
+        <el-button type="success" @click="submitForm('form')" :disabled="register.submitDisabled">立即注册</el-button>
+      </el-form-item>-->
     </el-form>
-  </div>
+    <span slot="footer" class="dialog-footer">
+      <el-button type="primary" @click="handleClick" :disabled="register.submitDisabled">立即注册</el-button>
+    </span>
+  </el-dialog>
 </template>
 
 <script>
-import request from '../api/index';
+import request from "../api/index";
 
-const  getRegisterVCode =request.getRegisterVCode;
-const getRegisterCheckVcode =  request.getRegisterCheckVcode
-const postRegister =  request.postRegister
+const getRegisterVCode = request.getRegisterVCode;
+const getRegisterCheckVcode = request.getRegisterCheckVcode;
+const postRegister = request.postRegister;
+
 export default {
   name: "Register",
   data() {
     return {
-      //* 表单数据
-     form :{
-          user : "",
-          pwd : "",
-          checkPwd : "",
-          svgCode : ""
-        },
-      //* 表单验证
+      //表单数据
+      form: {
+        user: "",
+        pwd: "",
+        checkPwd: "",
+        svgCode: ""
+      },
+      //表单验证
       rules: {
-        // 用户验证
+        //用户名验证
         user: [
           { required: true, message: "请输入用户名", trigger: "blur" },
           {
+            //数据类型
+            type: "string",
+            //正则规则
             // eslint-disable-next-line no-useless-escape
-            pattern: /^[\w\u4e00-\u9fa5\uac00-\ud7ff\u0800-\u4e00\-]{2,8}$/,
-            require: true,
-            min: 2,
-            max: 8,
-            message: "长度2-8,数字字母下划线,中日韩文,",
-            trigger: "blur"
+            pattern: /^[\w\u4e00-\u9fa5\uac00-\ud7ff\u0800-\u4e00\-]{2,7}$/,
+            message: "2-7位，数字 字母 _ - 中日韩文",
+            trigger: ["blur", "change"]
           }
         ],
+
         //密码验证
         pwd: {
           type: "string",
@@ -88,6 +86,7 @@ export default {
           message: "6-18位，不允许出现奇怪的字符",
           trigger: ["blur", "change"]
         },
+
         //再次输入密码验证
         checkPwd: {
           validator: (rule, value, cb) => {
@@ -104,132 +103,135 @@ export default {
           required: true,
           trigger: ["blur", "change"]
         },
-         //验证码
-        svgCode : {
-            validator : (rule,value,cb)=>{
-              if (!value){
-                cb(new Error("请输入验证码！"));
-              }else{
-                getRegisterCheckVcode(value)
-                .then(res=>{
-                  if (res.data.code === 0){
+
+        //验证码
+        svgCode: {
+          validator: (rule, value, cb) => {
+            if (!value) {
+              cb(new Error("请输入验证码！"));
+            } else {
+              getRegisterCheckVcode(value)
+                .then(res => {
+                  if (res.data.code === 0) {
                     cb();
-                  }else{
+                  } else {
                     cb(new Error("验证码错误"));
                   }
                 })
-                .catch(()=>{
+                .catch(() => {
                   cb(new Error("未知错误…"));
                 });
-              }
-            },
-            required: true,
-            trigger: 'blur'
-          }
-      },
-    //* 注册相关的数据
-        register : {
-          svgText : "loading...",
-          refreshText : "刷新",
-          disabled : true,
-          timer : null,
-          submitDisabled : false
+            }
+          },
+          required: true,
+          trigger: "blur"
         }
+      },
+
+      //注册相关的数据
+      register: {
+        svgText: "loading...",
+        refreshText: "刷新",
+        disabled: true,
+        timer: null,
+        submitDisabled: false
+      }
     };
   },
-  methods: {
-     getVCode(){
-        getRegisterVCode().then(res=>{
-          clearTimeout(this.register.timer);
-          let t = 0;
-          let fn = ()=>{
-            t+=1000;
-            if (t > res.data.time){
-              clearTimeout(this.register.timer);
-              this.register.disabled = false;
-              this.register.refreshText = "刷新";
-            }else{
-              this.register.disabled = true;
-              this.register.refreshText = (((res.data.time - t)/1000)|0) + "s后可以刷新";
-            }
-          };
-          this.register.timer = setInterval(fn,1000);
-          fn();
+  props: ["dialogVisible"],
 
-          //更新图片
-          this.register.svgText = res.data.data;
-        });
-      },
-      /*注册的点击*/
-      handleClick(){
-        this.register.submitDisabled = true;
-        this.$refs["form"].validate((valid) => {
-          if (valid) {
-            //验证都通过
-            postRegister(this.form).then(res=>{
+  methods: {
+    getVCode() {
+      getRegisterVCode().then(res => {
+        clearTimeout(this.register.timer);
+        let t = 0;
+        let fn = () => {
+          t += 1000;
+          if (t > res.data.time) {
+            clearTimeout(this.register.timer);
+            this.register.disabled = false;
+            this.register.refreshText = "刷新";
+          } else {
+            this.register.disabled = true;
+            this.register.refreshText =
+              (((res.data.time - t) / 1000) | 0) + "s后可以刷新";
+          }
+        };
+        this.register.timer = setInterval(fn, 1000);
+        fn();
+
+        //更新图片
+        this.register.svgText = res.data.data;
+      });
+    },
+
+    /*注册的点击*/
+    handleClick() {
+      this.register.submitDisabled = true;
+      this.$refs["form"].validate(valid => {
+        if (valid) {
+          //验证都通过
+          postRegister(this.form)
+            .then(res => {
               this.getVCode();
-              if (res.data.code){
+              if (res.data.code) {
                 this.$message({
                   message: res.data.msg,
-                  type: 'error',
-                  duration : 2000
+                  type: "error",
+                  duration: 2000
                 });
                 this.register.submitDisabled = false;
-              }else{
+              } else {
                 //注册成功
                 this.$message({
-                  message: '注册成功！',
-                  type: 'success',
-                  duration : 2000
+                  message: "注册成功！",
+                  type: "success",
+                  duration: 2000
                 });
-                setTimeout(()=>{
+                setTimeout(() => {
                   this.register.submitDisabled = false;
-                  this.$emit("handleClose",true);
-                },1800);
+                  this.$emit("handleClose", true);
+                }, 1800);
               }
-            // eslint-disable-next-line no-unused-vars
-            }).catch(e=>{
+            })
+            .catch(() => {
               this.register.submitDisabled = false;
               this.getVCode();
               this.$message({
                 message: "注册失败请稍后再试~",
-                type: 'error',
-                duration : 2000
+                type: "error",
+                duration: 2000
               });
             });
-          } else {
-            this.register.submitDisabled = false;
-            //验证没通过
-            return false;
-          }
-        });
-      },
- 
-      /*关闭的回调*/
-      // beforeClose(done){
-      //   this.$confirm('确认关闭？')
-      //     .then(()=> {
-      //       this.$emit("handleClose",false);
-      //     })
-      //     .catch(()=> {});
-      // }
- 
- 
- 
- 
- },
- mounted() {
-    // 组件挂载的时候加载验证码
-     this.getVCode()
-  },
-    destroyed() {
-      clearTimeout(this.register.timer);
-    }
-}
+        } else {
+          this.register.submitDisabled = false;
+          //验证没通过
+          return false;
+        }
+      });
+    },
 
+    /*关闭的回调*/
+    // eslint-disable-next-line no-unused-vars
+    beforeClose(done) {
+      this.$confirm("确认关闭？")
+        .then(() => {
+          this.$emit("handleClose", false);
+        })
+        .catch(() => {});
+    }
+  },
+
+  mounted() {
+    this.getVCode();
+  },
+  destroyed() {
+    clearTimeout(this.register.timer);
+  }
+};
 </script>
 
-<style lang="less" scoped>
+<style scoped lang="less">
 .el-form {
   user-select: none;
   padding-right: 30px;
@@ -254,4 +256,3 @@ export default {
   }
 }
 </style>
-
